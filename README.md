@@ -65,7 +65,7 @@ To preview or run the website locally without any installation of heavy framewor
 
 ```bash
 # Clone the repository
-git clone https://github.com/favaz/todaysfit-gym.git
+git clone https://github.com/favazmk/todaysfit-gym.git
 
 # Navigate into the project folder
 cd todaysfit-gym
