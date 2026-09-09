@@ -1,0 +1,6 @@
+# Temporary and scratch files
+assets_reference/
+.DS_Store
+Thumbs.db
+node_modules/
+*.log
