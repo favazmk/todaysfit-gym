@@ -1,0 +1,1 @@
+Create a React web application using Vite and Tailwind CSS v4 that perfectly replicates a dark-themed glowing feature card section.

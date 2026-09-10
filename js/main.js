@@ -410,3 +410,467 @@ function initSmoothScroll() {
     });
   });
 }
+
+
+/* --------------------------------------------------------------------------
+   10. THREE.JS 3D DUMBBELL EXPERIENCE
+   -------------------------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof THREE === 'undefined' || typeof gsap === 'undefined') return;
+
+  const canvas = document.getElementById('webgl-canvas');
+  if (!canvas) return;
+
+  // Reduced motion check
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Scene Setup
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.z = 12;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+
+  const dirLight = new THREE.DirectionalLight(0xfff0dd, 2.5); // Warm key light
+  dirLight.position.set(5, 5, 4);
+  scene.add(dirLight);
+
+  const rimLight = new THREE.SpotLight(0xff0000, 2); // Brand red rim light
+  rimLight.position.set(-5, 5, -5);
+  scene.add(rimLight);
+
+  // Dumbbell Construction
+  const dumbbell = new THREE.Group();
+  
+  const metalMat = new THREE.MeshStandardMaterial({ 
+    color: 0x888888, 
+    metalness: 0.8, 
+    roughness: 0.3 
+  });
+  
+  const rubberMat = new THREE.MeshStandardMaterial({ 
+    color: 0x111111, 
+    metalness: 0.2, 
+    roughness: 0.9 
+  });
+
+  // Handle
+  const handleGeo = new THREE.CylinderGeometry(0.15, 0.15, 2, 32);
+  const handle = new THREE.Mesh(handleGeo, metalMat);
+  handle.rotation.z = Math.PI / 2;
+  dumbbell.add(handle);
+
+  // Inner Plates
+  const innerPlateGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.4, 32);
+  const innerPlate1 = new THREE.Mesh(innerPlateGeo, rubberMat);
+  innerPlate1.position.x = 1.2;
+  innerPlate1.rotation.z = Math.PI / 2;
+  
+  const innerPlate2 = innerPlate1.clone();
+  innerPlate2.position.x = -1.2;
+  
+  dumbbell.add(innerPlate1);
+  dumbbell.add(innerPlate2);
+
+  // Outer Plates
+  const outerPlateGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.3, 32);
+  const outerPlate1 = new THREE.Mesh(outerPlateGeo, rubberMat);
+  outerPlate1.position.x = 1.6;
+  outerPlate1.rotation.z = Math.PI / 2;
+  
+  const outerPlate2 = outerPlate1.clone();
+  outerPlate2.position.x = -1.6;
+
+  dumbbell.add(outerPlate1);
+  dumbbell.add(outerPlate2);
+
+  // Caps
+  const capGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 32);
+  const cap1 = new THREE.Mesh(capGeo, metalMat);
+  cap1.position.x = 1.8;
+  cap1.rotation.z = Math.PI / 2;
+  
+  const cap2 = cap1.clone();
+  cap2.position.x = -1.8;
+
+  dumbbell.add(cap1);
+  dumbbell.add(cap2);
+
+  scene.add(dumbbell);
+
+  // Initial State (Hero)
+  dumbbell.position.set(3, -2, 0);
+  dumbbell.rotation.set(0.5, -0.4, 0.2);
+  dumbbell.scale.set(1.2, 1.2, 1.2);
+
+  // Render Loop
+  let isRendering = true;
+  const tick = () => {
+    if (isRendering) {
+      renderer.render(scene, camera);
+      if (!prefersReducedMotion) {
+        // Very subtle idle floating if desired, but user requested no random movement when stopped.
+        // We rely purely on scroll for rotation.
+      }
+    }
+    window.requestAnimationFrame(tick);
+  };
+  tick();
+
+  // Resize
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  if (prefersReducedMotion) {
+    // Fade out immediately after hero
+    gsap.to(canvas, {
+      opacity: 0,
+      scrollTrigger: {
+        trigger: '#brand-statement',
+        start: 'top center',
+        end: 'top top',
+        scrub: true
+      }
+    });
+    return;
+  }
+
+  // GSAP ScrollTrigger Choreography
+  gsap.registerPlugin(ScrollTrigger);
+
+  const isMobile = window.innerWidth < 768;
+  
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: 'body',
+      start: 'top top',
+      end: '55% center',
+      scrub: 1
+    }
+  });
+
+  // 1. To Brand Statement
+  tl.to(dumbbell.position, {
+    x: isMobile ? -1 : -4,
+    y: isMobile ? 1 : 2,
+    z: -2,
+    ease: 'power1.inOut'
+  }, 0)
+  .to(dumbbell.rotation, {
+    x: 1.5,
+    y: 0.8,
+    z: 1,
+    ease: 'power1.inOut'
+  }, 0)
+  .to(dumbbell.scale, {
+    x: 1, y: 1, z: 1,
+    ease: 'power1.inOut'
+  }, 0);
+
+  // 2. To Programs
+  tl.to(dumbbell.position, {
+    x: isMobile ? 1.5 : 3.5,
+    y: isMobile ? -0.5 : -1,
+    z: 1,
+    ease: 'power1.inOut'
+  }, 0.3)
+  .to(dumbbell.rotation, {
+    x: 2.5,
+    y: -0.5,
+    z: 0.5,
+    ease: 'power1.inOut'
+  }, 0.3);
+
+  // 3. To Facility
+  tl.to(dumbbell.position, {
+    x: isMobile ? -1.5 : -3,
+    y: isMobile ? -1 : -2,
+    z: 0,
+    ease: 'power1.inOut'
+  }, 0.6)
+  .to(dumbbell.rotation, {
+    x: 3.5,
+    y: 1.2,
+    z: -0.5,
+    ease: 'power1.inOut'
+  }, 0.6);
+
+  // 4. Exit / Fade out
+  tl.to(dumbbell.position, {
+    y: 3,
+    ease: 'power1.in'
+  }, 0.9)
+  .to(dumbbell.scale, {
+    x: 0.7, y: 0.7, z: 0.7,
+    ease: 'power1.in'
+  }, 0.9)
+  .to(canvas, {
+    opacity: 0,
+    ease: 'power1.in',
+    onComplete: () => {
+      isRendering = false;
+      canvas.style.display = 'none';
+    },
+    onReverseComplete: () => {
+      isRendering = true;
+      canvas.style.display = 'block';
+    }
+  }, 0.9);
+});
+
+
+
+
+/* --------------------------------------------------------------------------
+   11. ABOUT PAGE V2 CINEMATIC SCROLL (REFINED)
+   -------------------------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  initAboutScrollExperience();
+});
+
+function initAboutScrollExperience() {
+  if (!document.querySelector('main.about-page')) return;
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion) return; // Let CSS fallbacks handle it
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Use matchMedia for responsive choreographies
+  let mm = gsap.matchMedia();
+
+  mm.add({
+    isDesktop: "(min-width: 1025px)",
+    isTablet: "(min-width: 769px) and (max-width: 1024px)",
+    isMobile: "(max-width: 768px)"
+  }, (context) => {
+    let { isDesktop, isTablet, isMobile } = context.conditions;
+
+    initAboutHero(isDesktop, isTablet, isMobile);
+    initAboutApproach(isDesktop, isTablet, isMobile);
+    initAboutPillars(isDesktop, isTablet, isMobile);
+    initAboutSpace(isDesktop, isTablet, isMobile);
+
+    return () => {
+      // clean up all ScrollTriggers on breakpoint change
+      ScrollTrigger.getAll().forEach(t => t.kill());
+    };
+  });
+}
+
+function initAboutHero(isDesktop, isTablet, isMobile) {
+  const section = document.querySelector('.about-hero');
+  const overlay = document.querySelector('.approach-overlay');
+  if (!section) return;
+
+  const loadTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  loadTl.to('.hero-image-wrap img', { scale: 1, duration: 2 }, 0)
+    .to('.hero-eyebrow', { opacity: 1, duration: 1 }, 0.2)
+    .to('.hero-heading', { clipPath: 'inset(0% 0 0 0)', y: 0, duration: 1.2 }, 0.3)
+    .to('.hero-sub', { opacity: 1, duration: 1 }, 0.6)
+    .to('.hero-actions', { opacity: 1, duration: 1 }, 0.8);
+
+  const scrollTl = gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start: 'top top',
+      end: isMobile ? '+=60%' : '+=100%',
+      scrub: isMobile ? 0.7 : 1,
+      pin: true,
+      anticipatePin: 1
+    }
+  });
+
+  scrollTl.to('.hero-image-wrap img', {
+    scale: 1.04,
+    ease: 'none'
+  }, 0)
+  .to('.hero-heading-wrap', {
+    y: isMobile ? -20 : -50,
+    scale: 0.95,
+    ease: 'none'
+  }, 0)
+  .to(overlay, {
+    yPercent: 0,
+    ease: 'none'
+  }, 0);
+}
+
+function initAboutApproach(isDesktop, isTablet, isMobile) {
+  const section = document.querySelector('.about-approach');
+  const overlay = document.querySelector('.pillars-overlay');
+  if (!section) return;
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start: 'top top',
+      end: isMobile ? '+=80%' : '+=120%',
+      scrub: isMobile ? 0.7 : 1,
+      pin: true,
+      anticipatePin: 1
+    }
+  });
+
+  tl.to('.approach-text', {
+    opacity: 1,
+    y: -10,
+    ease: 'power2.out'
+  }, 0.1)
+  .to('.about-approach .motion-image-wrap', {
+    clipPath: 'inset(0 0% 0 0)',
+    ease: 'power2.inOut'
+  }, 0.2)
+  .to('.about-approach .motion-image-wrap img', {
+    scale: 1,
+    ease: 'power2.inOut'
+  }, 0.2)
+  .to(overlay, {
+    yPercent: 0,
+    ease: 'none'
+  }, 0.8);
+}
+
+function initAboutPillars(isDesktop, isTablet, isMobile) {
+  const section = document.querySelector('.about-pillars');
+  if (!section) return;
+
+  const pillars = gsap.utils.toArray('.pillar-item');
+  if (!pillars.length) return;
+
+  const indicator = document.querySelector('.pillars-indicator-line');
+
+  // Reset to robust state
+  gsap.set(pillars, { opacity: 0, yPercent: -50, scale: 0.96 });
+  gsap.set(pillars[0], { opacity: 1, yPercent: -50, scale: 1, pointerEvents: 'auto' });
+
+  const endDistance = isMobile ? (pillars.length * 50) : (pillars.length * 80);
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start: 'top top',
+      end: `+=${endDistance}%`,
+      scrub: isMobile ? 0.7 : 1,
+      pin: true,
+      anticipatePin: 1
+    }
+  });
+
+  for (let i = 0; i < pillars.length - 1; i++) {
+    const current = pillars[i];
+    const next = pillars[i + 1];
+
+    // Hold current state
+    tl.to({}, { duration: 0.3 });
+
+    // EXIT current completely
+    tl.to(current, {
+      yPercent: -80,
+      opacity: 0,
+      scale: 0.97,
+      duration: 0.4,
+      pointerEvents: 'none',
+      ease: 'power2.inOut'
+    });
+
+    // Update indicator line midway
+    tl.to(indicator, {
+      width: `${((i + 2) / pillars.length) * 100}%`,
+      ease: 'none',
+      duration: 0.2
+    }, "-=0.2");
+
+    // ENTER next AFTER current has visually cleared
+    tl.fromTo(next,
+      { yPercent: 0, opacity: 0, scale: 0.96 },
+      {
+        yPercent: -50,
+        opacity: 1,
+        scale: 1,
+        pointerEvents: 'auto',
+        duration: 0.4,
+        ease: 'power3.out'
+      }
+    );
+  }
+}
+
+function initAboutSpace(isDesktop, isTablet, isMobile) {
+  const section = document.querySelector('.about-space');
+  if (!section) return;
+
+  const slides = gsap.utils.toArray('.space-slide');
+  if (!slides.length) return;
+
+  gsap.set(slides, { yPercent: 100, zIndex: i => i });
+  gsap.set(slides[0], { yPercent: 0 });
+
+  const endDistance = isMobile ? (slides.length * 60) : (slides.length * 100);
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start: 'top top',
+      end: `+=${endDistance}%`,
+      scrub: isMobile ? 0.7 : 1,
+      pin: true,
+      anticipatePin: 1
+    }
+  });
+
+  slides.forEach((slide, index) => {
+    if (index === 0) {
+      // First slide caption is visible
+      gsap.set(slide.querySelector('.space-caption'), { opacity: 1, x: 0 });
+      return;
+    }
+
+    const previous = slides[index - 1];
+    const prevCaption = previous.querySelector('.space-caption');
+    const currCaption = slide.querySelector('.space-caption');
+
+    // Slide images
+    tl.to(previous, {
+      scale: 0.96,
+      yPercent: -10,
+      ease: 'none',
+      duration: 1
+    }, `scene-${index}`);
+
+    tl.to(slide, {
+      yPercent: 0,
+      ease: 'none',
+      duration: 1
+    }, `scene-${index}`);
+
+    tl.to(slide.querySelector('img'), {
+      scale: 1,
+      ease: 'none',
+      duration: 1
+    }, `scene-${index}`);
+
+    // Slide Captions - synchronized when the incoming image is dominant (halfway through transition)
+    tl.to(prevCaption, {
+      opacity: 0,
+      x: -20,
+      duration: 0.2
+    }, `scene-${index}+=0.5`);
+
+    tl.to(currCaption, {
+      opacity: 1,
+      x: 0,
+      duration: 0.3
+    }, `scene-${index}+=0.7`);
+  });
+}
