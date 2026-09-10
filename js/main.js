@@ -754,7 +754,7 @@ function initAboutPillars(isDesktop, isTablet, isMobile) {
   gsap.set(pillars, { opacity: 0, yPercent: -50, scale: 0.96 });
   gsap.set(pillars[0], { opacity: 1, yPercent: -50, scale: 1, pointerEvents: 'auto' });
 
-  const endDistance = isMobile ? (pillars.length * 50) : (pillars.length * 80);
+  const endDistance = isMobile ? (pillars.length * 70) : (pillars.length * 80);
 
   const tl = gsap.timeline({
     scrollTrigger: {

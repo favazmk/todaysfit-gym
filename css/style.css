@@ -1862,6 +1862,9 @@ select.form-control option {
   .grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .footer-top-grid {
     grid-template-columns: 1fr 1fr;
   }
