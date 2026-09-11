@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAccordion();
   initForms();
   initSmoothScroll();
+  initHeroScrollSequence();
 });
 
 /* --------------------------------------------------------------------------
@@ -873,4 +874,156 @@ function initAboutSpace(isDesktop, isTablet, isMobile) {
       duration: 0.3
     }, `scene-${index}+=0.7`);
   });
+}
+
+
+/* --------------------------------------------------------------------------
+   9. HERO SCROLL SEQUENCE
+   Scrubs a WebP frame sequence against scroll position while the hero is
+   pinned. Scrolling back runs it in reverse — it is just a lower frame index.
+   Frames were time-remapped at export so visual change per scroll unit is
+   roughly constant; do not resample them assuming linear time.
+   -------------------------------------------------------------------------- */
+function initHeroScrollSequence() {
+  const track = document.getElementById('heroScroll');
+  const canvas = document.getElementById('heroCanvas');
+  const fallback = document.getElementById('heroFallback');
+  if (!track || !canvas || !fallback) return;
+
+  /* Two crops of the same take, time-remapped identically so both tell the
+     story at the same pace. Mobile is a centred 9:16 crop at fewer frames. */
+  const SOURCES = {
+    desktop: { dir: 'assets/hero/desktop', count: 90 },
+    mobile:  { dir: 'assets/hero/mobile',  count: 45 }
+  };
+  const wide = window.matchMedia('(min-width: 1024px)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const pick = () => (wide.matches ? SOURCES.desktop : SOURCES.mobile);
+
+  const ctx = canvas.getContext('2d', { alpha: false });
+  let set = null;
+  let frames = [];
+  let active = false;
+  let ticking = false;
+  let lastDrawn = -1;
+
+  const srcFor = (s, i) => `${s.dir}/f${String(i).padStart(3, '0')}.webp`;
+
+  /* Draw with "cover" framing so the frame fills any viewport aspect ratio. */
+  function paint(img) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+    if (!cw || !ch) return;
+    if (canvas.width !== Math.round(cw * dpr) || canvas.height !== Math.round(ch * dpr)) {
+      canvas.width = Math.round(cw * dpr);
+      canvas.height = Math.round(ch * dpr);
+    }
+    const scale = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+    const w = img.naturalWidth * scale;
+    const h = img.naturalHeight * scale;
+    ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+  }
+
+  /* Frames load progressively, so fall back to the closest one already decoded
+     rather than dropping the paint entirely. */
+  function nearestReady(i) {
+    const n = set.count;
+    if (frames[i] && frames[i].complete && frames[i].naturalWidth) return frames[i];
+    for (let r = 1; r < n; r++) {
+      const lo = frames[i - r];
+      if (lo && lo.complete && lo.naturalWidth) return lo;
+      const hi = frames[i + r];
+      if (hi && hi.complete && hi.naturalWidth) return hi;
+    }
+    return null;
+  }
+
+  function frameForScroll() {
+    const total = track.offsetHeight - window.innerHeight;
+    if (total <= 0) return 0;
+    const p = Math.min(Math.max(-track.getBoundingClientRect().top / total, 0), 1);
+    return Math.round(p * (set.count - 1));
+  }
+
+  function render() {
+    ticking = false;
+    if (!active) return;
+    const i = frameForScroll();
+    if (i === lastDrawn) return;
+    const img = nearestReady(i);
+    if (!img) return;
+    paint(img);
+    lastDrawn = i;
+  }
+
+  function onScroll() {
+    if (ticking || !active) return;
+    ticking = true;
+    requestAnimationFrame(render);
+  }
+
+  function onResize() {
+    if (!active) return;
+    lastDrawn = -1;
+    onScroll();
+  }
+
+  function loadFrames() {
+    const s = set;
+    frames = new Array(s.count);
+    /* Frame 0 first so the canvas can take over from the still immediately,
+       then the rest in order — the sequence is watched front to back. */
+    const first = new Image();
+    first.src = srcFor(s, 0);
+    frames[0] = first;
+    first.onload = () => {
+      if (set !== s) return;           // breakpoint changed mid-load
+      canvas.classList.add('is-ready');
+      lastDrawn = -1;
+      onScroll();
+      for (let i = 1; i < s.count; i++) {
+        const img = new Image();
+        img.src = srcFor(s, i);
+        frames[i] = img;
+      }
+    };
+  }
+
+  function enable(next) {
+    const changed = set !== next;
+    set = next;
+    active = true;
+    track.classList.remove('is-static');
+    if (changed) {
+      canvas.classList.remove('is-ready');
+      fallback.src = srcFor(set, 0);
+      loadFrames();
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
+    lastDrawn = -1;
+    onScroll();
+  }
+
+  function disable(next) {
+    set = next;
+    active = false;
+    track.classList.add('is-static');
+    canvas.classList.remove('is-ready');
+    /* Static hero shows the destination, not the corridor it started in. */
+    fallback.src = srcFor(next, next.count - 1);
+    window.removeEventListener('scroll', onScroll);
+    window.removeEventListener('resize', onResize);
+  }
+
+  function evaluate() {
+    const next = pick();
+    if (reducedMotion.matches) disable(next);
+    else enable(next);
+  }
+
+  reducedMotion.addEventListener('change', evaluate);
+  wide.addEventListener('change', evaluate);
+  evaluate();
 }

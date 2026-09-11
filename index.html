@@ -137,9 +137,11 @@
     <!-- =======================================================================
          SECTION 1: HERO
          ======================================================================= -->
+    <div class="hero-scroll" id="heroScroll">
     <section class="hero" id="hero">
       <div class="hero-bg">
-        <img src="assets/images/interior/gym_floor_main.webp" alt="Today's Fit Gym Interior Floor with Olympic Racks and Geometric Chandelier Lighting" width="1672" height="941" fetchpriority="high">
+        <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
+        <img class="hero-fallback" id="heroFallback" src="assets/hero/desktop/f000.webp" alt="A member arriving at Today's Fit Gym, walking the corridor toward the training floor" width="1280" height="720" fetchpriority="high">
       </div>
       <div class="hero-overlay"></div>
       <div class="hero-radial-glow"></div>
@@ -171,6 +173,7 @@
         </div>
       </div>
     </section>
+    </div><!-- /.hero-scroll -->
 
     <!-- Marquee Ticker -->
     <div class="marquee-ribbon" aria-hidden="true">

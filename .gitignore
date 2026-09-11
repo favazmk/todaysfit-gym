@@ -4,3 +4,14 @@ assets_reference/
 Thumbs.db
 node_modules/
 *.log
+
+# Hero scroll source footage — raw AI takes and working files.
+# The derived frame sequence in assets/hero/ IS tracked; these sources are not.
+assets/images/Hero anime/takes/
+assets/images/Hero anime/*.png
+
+# Playwright MCP working output
+.playwright-mcp/
+
+# Local Claude Code settings (machine-specific)
+.claude/settings.local.json
