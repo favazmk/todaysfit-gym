@@ -888,17 +888,38 @@ function initHeroScrollSequence() {
   const track = document.getElementById('heroScroll');
   const canvas = document.getElementById('heroCanvas');
   const fallback = document.getElementById('heroFallback');
+  const fade = document.getElementById('heroFade');
+  const header = document.querySelector('.site-header');
   if (!track || !canvas || !fallback) return;
 
   /* Two crops of the same take, time-remapped identically so both tell the
-     story at the same pace. Mobile is a centred 9:16 crop at fewer frames. */
+     story at the same pace. anchorY biases the "cover" draw vertically: on
+     viewports wider than the frame, cover overflows vertically and a centred
+     draw trims the subject's head. 0 = anchor to the top, so the overflow is
+     taken entirely off the bottom (floor), which is the expendable part. */
   const SOURCES = {
-    desktop: { dir: 'assets/hero/desktop', count: 90 },
-    mobile:  { dir: 'assets/hero/mobile',  count: 45 }
+    desktop: { dir: 'assets/hero/desktop', count: 120, anchorY: 0 },
+    mobile:  { dir: 'assets/hero/mobile',  count: 60,  anchorY: 0.1 }
   };
   const wide = window.matchMedia('(min-width: 1024px)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const pick = () => (wide.matches ? SOURCES.desktop : SOURCES.mobile);
+
+  /* Scrub timeline, in progress units (0 = hero entered, 1 = scrub done). */
+  const CUE = {
+    eyebrow:   [0.04, 0.12],
+    line1In:   [0.06, 0.15],
+    line1Out:  [0.38, 0.47],
+    line2In:   [0.50, 0.60],
+    subtitle:  [0.55, 0.66],
+    actions:   [0.60, 0.72],
+    indicator: [0.04, 0.12],
+    fade:      [0.88, 1.00]
+  };
+  const HEADER_AT = 0.995;
+
+  const el = {};
+  document.querySelectorAll('[data-hero-el]').forEach(n => { el[n.dataset.heroEl] = n; });
 
   const ctx = canvas.getContext('2d', { alpha: false });
   let set = null;
@@ -906,8 +927,51 @@ function initHeroScrollSequence() {
   let active = false;
   let ticking = false;
   let lastDrawn = -1;
+  let headerShown = null;
 
   const srcFor = (s, i) => `${s.dir}/f${String(i).padStart(3, '0')}.webp`;
+  const clamp01 = v => (v < 0 ? 0 : v > 1 ? 1 : v);
+  const ramp = (p, cue) => clamp01((p - cue[0]) / (cue[1] - cue[0]));
+  const ease = t => 1 - Math.pow(1 - t, 3);
+
+  function place(node, opacity, ty) {
+    if (!node) return;
+    node.style.opacity = opacity.toFixed(3);
+    node.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0)`;
+  }
+
+  /* Reveal each piece against scrub progress. Everything keeps its layout box
+     throughout, so staging never shifts the rest of the hero. */
+  function stage(p) {
+    const eb = ease(ramp(p, CUE.eyebrow));
+    place(el.eyebrow, eb, (1 - eb) * 14);
+
+    const in1 = ease(ramp(p, CUE.line1In));
+    const out1 = ease(ramp(p, CUE.line1Out));
+    place(el.line1, in1 * (1 - out1), (1 - in1) * 26 - out1 * 26);
+
+    const in2 = ease(ramp(p, CUE.line2In));
+    place(el.line2, in2, (1 - in2) * 26);
+
+    const sub = ease(ramp(p, CUE.subtitle));
+    place(el.subtitle, sub, (1 - sub) * 20);
+
+    const act = ease(ramp(p, CUE.actions));
+    place(el.actions, act, (1 - act) * 20);
+
+    const ind = ease(ramp(p, CUE.indicator));
+    place(el.indicator, 1 - ind, 0);
+
+    if (fade) fade.style.opacity = ramp(p, CUE.fade).toFixed(3);
+
+    setHeaderShown(p >= HEADER_AT);
+  }
+
+  function setHeaderShown(show) {
+    if (!header || show === headerShown) return;
+    headerShown = show;
+    header.classList.toggle('is-hero-shown', show);
+  }
 
   /* Draw with "cover" framing so the frame fills any viewport aspect ratio. */
   function paint(img) {
@@ -922,7 +986,7 @@ function initHeroScrollSequence() {
     const scale = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
     const w = img.naturalWidth * scale;
     const h = img.naturalHeight * scale;
-    ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+    ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) * set.anchorY, w, h);
   }
 
   /* Frames load progressively, so fall back to the closest one already decoded
@@ -939,17 +1003,18 @@ function initHeroScrollSequence() {
     return null;
   }
 
-  function frameForScroll() {
+  function progress() {
     const total = track.offsetHeight - window.innerHeight;
     if (total <= 0) return 0;
-    const p = Math.min(Math.max(-track.getBoundingClientRect().top / total, 0), 1);
-    return Math.round(p * (set.count - 1));
+    return clamp01(-track.getBoundingClientRect().top / total);
   }
 
   function render() {
     ticking = false;
     if (!active) return;
-    const i = frameForScroll();
+    const p = progress();
+    stage(p);
+    const i = Math.round(p * (set.count - 1));
     if (i === lastDrawn) return;
     const img = nearestReady(i);
     if (!img) return;
@@ -975,6 +1040,7 @@ function initHeroScrollSequence() {
     /* Frame 0 first so the canvas can take over from the still immediately,
        then the rest in order — the sequence is watched front to back. */
     const first = new Image();
+    first.decoding = 'async';
     first.src = srcFor(s, 0);
     frames[0] = first;
     first.onload = () => {
@@ -984,6 +1050,7 @@ function initHeroScrollSequence() {
       onScroll();
       for (let i = 1; i < s.count; i++) {
         const img = new Image();
+        img.decoding = 'async';
         img.src = srcFor(s, i);
         frames[i] = img;
       }
@@ -1013,6 +1080,8 @@ function initHeroScrollSequence() {
     canvas.classList.remove('is-ready');
     /* Static hero shows the destination, not the corridor it started in. */
     fallback.src = srcFor(next, next.count - 1);
+    if (fade) fade.style.opacity = '0';
+    setHeaderShown(true);
     window.removeEventListener('scroll', onScroll);
     window.removeEventListener('resize', onResize);
   }

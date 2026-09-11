@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="has-hero-scrub">
 <head>
   <meta charset="UTF-8">
+  <!-- Marks that scripting is live. The hero scrub's staged elements and the
+       header are hidden only under .js, so nothing is stuck hidden if JS fails. -->
+  <script>document.documentElement.classList.add('js');</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Today's Fit Gym | Industrial Luxury Fitness in Bur Dubai, UAE</title>
   <meta name="description" content="Experience industrial luxury fitness at Today's Fit Gym LLC in Bur Dubai. Spacious training floor, separate ladies and gents zones, sauna, in-house café, and personal training. Memberships from AED 100/mo.">
@@ -147,15 +150,17 @@
       <div class="hero-radial-glow"></div>
 
       <div class="container hero-content">
-        <div class="eyebrow reveal">Today's Fit Gym · Bur Dubai</div>
-        <h1 class="hero-headline reveal reveal-delay-1">
-          Train With Purpose.<br>
-          <span class="text-red">Transform</span> With Today's Fit.
+        <div class="eyebrow" data-hero-el="eyebrow">Today's Fit Gym · Bur Dubai</div>
+        <!-- One h1 for SEO; the two lines are staged separately against scroll
+             and share a grid cell so swapping them causes no layout shift. -->
+        <h1 class="hero-headline">
+          <span class="hero-line" data-hero-el="line1">Train With Purpose.</span>
+          <span class="hero-line" data-hero-el="line2"><span class="text-red">Transform</span> With Today's Fit.</span>
         </h1>
-        <p class="hero-subtitle reveal reveal-delay-2">
+        <p class="hero-subtitle" data-hero-el="subtitle">
           A premium fitness destination in the heart of Bur Dubai, built for people who are serious about getting stronger, healthier and better.
         </p>
-        <div class="hero-actions reveal reveal-delay-3">
+        <div class="hero-actions" data-hero-el="actions">
           <button type="button" class="btn btn-primary btn-lg" data-open-join>
             <span>Join Today</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -167,11 +172,15 @@
             <span>Explore The Gym</span>
           </a>
         </div>
-        <div class="hero-scroll-indicator reveal reveal-delay-4">
+        <div class="hero-scroll-indicator" data-hero-el="indicator">
           <div class="scroll-line"></div>
           <span>Scroll to explore facility</span>
         </div>
       </div>
+
+      <!-- Fades the hero to black as the scrub finishes, so the next section
+           emerges from black rather than sliding up under a lit image. -->
+      <div class="hero-fade" id="heroFade" aria-hidden="true"></div>
     </section>
     </div><!-- /.hero-scroll -->
 

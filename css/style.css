@@ -670,13 +670,13 @@ p {
    Height above 100vh is the scrub budget — 260vh ≈ 1.6 viewports of scrolling. */
 .hero-scroll {
   position: relative;
-  height: 260vh;
+  height: 380vh;
 }
 
 /* Shorter scrub budget on phones — 260vh of thumb-scrolling is too long. */
 @media (max-width: 1023px) {
   .hero-scroll {
-    height: 200svh;
+    height: 300svh;
   }
 }
 
@@ -2679,5 +2679,93 @@ select.form-control option {
   }
   .hero-actions {
     margin-bottom: 1.5rem;
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   HERO SCROLL SEQUENCE — STAGED CONTENT
+   Each piece is revealed against scrub progress by JS, which writes opacity
+   and transform directly. Never use display/visibility to stage these: they
+   must keep their layout box so revealing one never shifts the others.
+   -------------------------------------------------------------------------- */
+[data-hero-el] {
+  will-change: opacity, transform;
+}
+
+/* Hidden from first paint so the staged reveal never flashes. JS then writes
+   inline opacity, which wins over this. */
+.js.has-hero-scrub [data-hero-el] {
+  opacity: 0;
+}
+
+/* Both headline lines share one grid cell, so swapping line 1 for line 2
+   cannot move anything. The cell is as tall as the taller line. */
+.hero-headline {
+  display: grid;
+  align-items: start;
+}
+
+.hero-line {
+  grid-area: 1 / 1;
+}
+
+/* On short viewports the hero stack is taller than the fold and the scroll
+   indicator — the last, least important item — gets clipped. Drop it there
+   rather than let it be cut off. It is only visible at the very start anyway. */
+@media (max-height: 700px) {
+  .hero-scroll-indicator {
+    display: none;
+  }
+}
+
+/* Fades the hero to black at the end of the scrub. */
+.hero-fade {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: var(--color-bg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Header stays out of the way until the hero scrub finishes. Hidden from the
+   first paint (not by JS after the fact, which would flash), but only under
+   .js and only on the page that has the scrub. */
+.js.has-hero-scrub .site-header {
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+.js.has-hero-scrub .site-header.is-hero-shown {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.site-header {
+  transition: opacity 420ms ease, transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Static hero (reduced motion, or no scrub): show everything at rest, with
+   the headline lines stacked normally rather than overlaid. */
+.hero-scroll.is-static .hero-headline {
+  display: block;
+}
+
+.hero-scroll.is-static [data-hero-el] {
+  opacity: 1 !important;
+  transform: none !important;
+  will-change: auto;
+}
+
+.hero-scroll.is-static .hero-fade {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header {
+    transition: none;
   }
 }
