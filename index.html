@@ -184,13 +184,24 @@
     </section>
     </div><!-- /.hero-scroll -->
 
-    <!-- Marquee Ticker -->
-    <div class="marquee-ribbon" aria-hidden="true">
-      <div class="marquee-track">
-        <div class="marquee-item">Train <span class="bullet">•</span> Build <span class="bullet">•</span> Move <span class="bullet">•</span> Discipline <span class="bullet">•</span> Results <span class="bullet">•</span> Industrial Luxury Fitness</div>
-        <div class="marquee-item">Bur Dubai <span class="bullet">•</span> Dedicated Ladies & Gents Zones <span class="bullet">•</span> Sauna Bath <span class="bullet">•</span> In-House Café <span class="bullet">•</span> Personal Training</div>
-        <div class="marquee-item">Train <span class="bullet">•</span> Build <span class="bullet">•</span> Move <span class="bullet">•</span> Discipline <span class="bullet">•</span> Results <span class="bullet">•</span> Industrial Luxury Fitness</div>
-        <div class="marquee-item">Bur Dubai <span class="bullet">•</span> Dedicated Ladies & Gents Zones <span class="bullet">•</span> Sauna Bath <span class="bullet">•</span> In-House Café <span class="bullet">•</span> Personal Training</div>
+    <!-- Crossed marquee ribbons: two bands tilted in opposite directions so
+         they form an X, scrolling against each other. -->
+    <div class="marquee-cross" aria-hidden="true">
+      <div class="marquee-ribbon marquee-band marquee-band-dark">
+        <div class="marquee-track">
+          <div class="marquee-item">Train <span class="bullet">•</span> Build <span class="bullet">•</span> Move <span class="bullet">•</span> Discipline <span class="bullet">•</span> Results <span class="bullet">•</span> Industrial Luxury Fitness</div>
+          <div class="marquee-item">Bur Dubai <span class="bullet">•</span> Dedicated Ladies &amp; Gents Zones <span class="bullet">•</span> Sauna Bath <span class="bullet">•</span> In-House Café <span class="bullet">•</span> Personal Training</div>
+          <div class="marquee-item">Train <span class="bullet">•</span> Build <span class="bullet">•</span> Move <span class="bullet">•</span> Discipline <span class="bullet">•</span> Results <span class="bullet">•</span> Industrial Luxury Fitness</div>
+          <div class="marquee-item">Bur Dubai <span class="bullet">•</span> Dedicated Ladies &amp; Gents Zones <span class="bullet">•</span> Sauna Bath <span class="bullet">•</span> In-House Café <span class="bullet">•</span> Personal Training</div>
+        </div>
+      </div>
+      <div class="marquee-ribbon marquee-band marquee-band-red">
+        <div class="marquee-track marquee-track-reverse">
+          <div class="marquee-item">Strength <span class="bullet">•</span> Cardio <span class="bullet">•</span> Personal Training <span class="bullet">•</span> Sauna <span class="bullet">•</span> Café <span class="bullet">•</span> Members Lounge</div>
+          <div class="marquee-item">Open Daily <span class="bullet">•</span> Al Fahidi Street <span class="bullet">•</span> Memberships From AED 100 <span class="bullet">•</span> Book A Free Visit</div>
+          <div class="marquee-item">Strength <span class="bullet">•</span> Cardio <span class="bullet">•</span> Personal Training <span class="bullet">•</span> Sauna <span class="bullet">•</span> Café <span class="bullet">•</span> Members Lounge</div>
+          <div class="marquee-item">Open Daily <span class="bullet">•</span> Al Fahidi Street <span class="bullet">•</span> Memberships From AED 100 <span class="bullet">•</span> Book A Free Visit</div>
+        </div>
       </div>
     </div>
 
@@ -819,24 +830,6 @@
     </div>
   </footer>
 
-  <!-- =========================================================================
-       MOBILE QUICK ACTION BAR (STICKY BOTTOM)
-       ========================================================================= -->
-  <div class="mobile-action-bar">
-    <div class="mobile-action-bar-inner">
-      <a href="tel:+971567037002" class="mobile-action-btn call-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        <span>Call</span>
-      </a>
-      <a href="https://wa.me/971567037002?text=Hello%20Today's%20Fit%20Gym%2C%20I%20would%20like%20to%20enquire%20about%20memberships." target="_blank" rel="noopener" class="mobile-action-btn wa-btn">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/></svg>
-        <span>WhatsApp</span>
-      </a>
-      <button type="button" class="mobile-action-btn join-btn" data-open-join>
-        <span>Join Now</span>
-      </button>
-    </div>
-  </div>
 
   <!-- =========================================================================
        MODAL: JOIN NOW

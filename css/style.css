@@ -599,71 +599,6 @@ p {
 }
 
 /* --------------------------------------------------------------------------
-   7. STICKY BOTTOM ACTION BAR (MOBILE ONLY)
-   -------------------------------------------------------------------------- */
-.mobile-action-bar {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 990;
-  background: rgba(17, 17, 17, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 10px 16px;
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
-}
-
-.mobile-action-bar-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.3fr;
-  gap: 8px;
-}
-
-.mobile-action-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px 6px;
-  border-radius: var(--radius-xs);
-  font-family: var(--font-display);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-text);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.mobile-action-btn svg {
-  width: 18px;
-  height: 18px;
-}
-
-.mobile-action-btn.call-btn {
-  color: #f7f7f5;
-}
-
-.mobile-action-btn.wa-btn {
-  color: #25D366;
-  border-color: rgba(37, 211, 102, 0.3);
-  background: rgba(37, 211, 102, 0.08);
-}
-
-.mobile-action-btn.join-btn {
-  background: var(--color-brand-red);
-  color: #ffffff;
-  border-color: var(--color-brand-red);
-  box-shadow: 0 2px 10px rgba(227, 30, 36, 0.4);
-}
-
-/* --------------------------------------------------------------------------
    8. HERO SECTIONS
    -------------------------------------------------------------------------- */
 /* Scroll track: the hero pins while this scrolls past, driving the frame scrub.
@@ -778,6 +713,8 @@ p {
   position: relative;
   z-index: 3;
   max-width: 920px;
+  margin-inline: auto;
+  text-align: center;
 }
 
 .hero-headline {
@@ -789,6 +726,7 @@ p {
   font-size: clamp(1rem, 1.6vw, 1.25rem);
   line-height: 1.5;
   max-width: 680px;
+  margin-inline: auto;
   color: rgba(247, 247, 245, 0.88);
   margin-bottom: 1.25rem;
 }
@@ -796,6 +734,7 @@ p {
 .hero-actions {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 1.5rem;
@@ -847,6 +786,89 @@ p {
   overflow: hidden;
   position: relative;
   z-index: 5;
+}
+
+/* --------------------------------------------------------------------------
+   CROSSED MARQUEE BANDS
+   Two ribbons tilted in opposite directions so they form an X, scrolling
+   against each other. The wrapper clips them, so the tilted ends never push
+   the page sideways; the bands are over-wide so their corners stay covered.
+   -------------------------------------------------------------------------- */
+.marquee-cross {
+  position: relative;
+  height: 260px;
+  overflow: hidden;
+  background: var(--color-bg);
+  z-index: 5;
+}
+
+.marquee-cross .marquee-band {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 130%;
+  border: none;
+}
+
+/* Light band, not --color-surface: at #181818 against a #0e0e0e page the
+   band was invisible. It needs to read as a distinct ribbon. */
+.marquee-cross .marquee-band-dark {
+  background: #f2f1ee;
+  transform: translate(-50%, -50%) rotate(-7deg);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
+}
+
+.marquee-cross .marquee-band-dark .marquee-item {
+  color: #131313;
+}
+
+.marquee-cross .marquee-band-dark .marquee-item span.bullet {
+  color: var(--color-brand-red);
+}
+
+.marquee-cross .marquee-band-red {
+  background: var(--color-brand-red);
+  transform: translate(-50%, -50%) rotate(7deg);
+  box-shadow: 0 10px 40px rgba(227, 30, 36, 0.35);
+}
+
+/* Narrow screens sweep far less vertical distance for a given angle, so the
+   bands barely cross. Steepen the tilt and close the gap. */
+@media (max-width: 767px) {
+  .marquee-cross {
+    height: 180px;
+  }
+
+  .marquee-cross .marquee-band {
+    width: 150%;
+  }
+
+  .marquee-cross .marquee-band-dark {
+    transform: translate(-50%, -50%) rotate(-12deg);
+  }
+
+  .marquee-cross .marquee-band-red {
+    transform: translate(-50%, -50%) rotate(12deg);
+  }
+
+  .marquee-cross .marquee-item {
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
+  }
+}
+
+.marquee-cross .marquee-band-red .marquee-item {
+  color: #ffffff;
+}
+
+.marquee-cross .marquee-band-red .marquee-item span.bullet {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Runs the same keyframes the other way, so the bands travel against each
+   other where they cross. */
+.marquee-track-reverse {
+  animation-direction: reverse;
 }
 
 .marquee-track {
@@ -1942,12 +1964,6 @@ select.form-control option {
   .menu-toggle {
     display: flex;
   }
-  .mobile-action-bar {
-    display: block;
-  }
-  body {
-    padding-bottom: 72px; /* space for bottom bar */
-  }
   .contact-layout {
     grid-template-columns: 1fr;
   }
@@ -2710,12 +2726,49 @@ select.form-control option {
   grid-area: 1 / 1;
 }
 
-/* On short viewports the hero stack is taller than the fold and the scroll
-   indicator — the last, least important item — gets clipped. Drop it there
-   rather than let it be cut off. It is only visible at the very start anyway. */
+/* On short viewports the hero stack is taller than the fold and its lower
+   items get clipped — the second CTA was being cut in half on a 345x608
+   phone. Drop the scroll indicator (least important, only shown at the very
+   start) and tighten the type scale and padding until the stack fits.
+   The header is hidden during the scrub, so the 100px top padding that
+   normally clears it is dead space here — except in the static fallback,
+   where the header is visible from the start. */
 @media (max-height: 700px) {
   .hero-scroll-indicator {
     display: none;
+  }
+
+  .hero {
+    padding-top: 28px;
+    padding-bottom: 24px;
+  }
+
+  .hero-scroll.is-static .hero {
+    padding-top: 96px;
+  }
+
+  .hero-headline {
+    font-size: clamp(1.85rem, 7.6vw, 2.5rem);
+    margin-bottom: 0.9rem;
+  }
+
+  .eyebrow {
+    margin-bottom: 0.6rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9375rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-actions {
+    gap: 10px;
+    margin-bottom: 0;
+  }
+
+  .hero-actions .btn-lg {
+    padding: 13px 24px;
+    font-size: 0.9375rem;
   }
 }
 
