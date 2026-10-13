@@ -292,7 +292,7 @@ function initForms() {
       const text = encodeURIComponent(
         `Hello Today's Fit Gym, my name is ${name}. I am interested in joining with the ${plan} plan. Please contact me at ${phone}.`
       );
-      window.open(`https://wa.me/971567037002?text=${text}`, '_blank');
+      window.open(`https://wa.me/971564955005?text=${text}`, '_blank');
       showToast('Redirecting to WhatsApp with your membership enquiry...', 'success');
       
       const modal = document.getElementById('joinModal');
@@ -319,7 +319,7 @@ function initForms() {
       const text = encodeURIComponent(
         `Hello Today's Fit Gym, my name is ${name}. I would like to book a visit / tour of the gym (Preferred date: ${date}). Phone: ${phone}.`
       );
-      window.open(`https://wa.me/971567037002?text=${text}`, '_blank');
+      window.open(`https://wa.me/971564955005?text=${text}`, '_blank');
       showToast('Redirecting to WhatsApp to confirm your gym tour...', 'success');
 
       const modal = document.getElementById('visitModal');
@@ -350,7 +350,7 @@ function initForms() {
         `Hello Today's Fit Gym!\n\nName: ${firstName} ${lastName}\nPhone: ${phone}\nEmail: ${email || 'N/A'}\nInterest: ${interest}\n\nMessage: ${message || 'I would like more information.'}`
       );
 
-      window.open(`https://wa.me/971567037002?text=${text}`, '_blank');
+      window.open(`https://wa.me/971564955005?text=${text}`, '_blank');
       showToast('Thank you! Your message has been prepared for WhatsApp.', 'success');
       contactForm.reset();
     });
