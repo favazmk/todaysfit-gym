@@ -369,7 +369,7 @@ function initForms() {
         `Hello Today's Fit Gym!\n\nName: ${firstName} ${lastName}\nPhone: ${phone}\nEmail: ${email || 'N/A'}\nInterest: ${interest}\n\nMessage: ${message || 'I would like more information.'}`
       );
 
-      window.open(`https://wa.me/971582586548?text=${text}`, '_blank');
+      window.open(`https://wa.me/971564955005?text=${text}`, '_blank');
       showToast('Thank you! Your message has been prepared for WhatsApp.', 'success');
       contactForm.reset();
     });
