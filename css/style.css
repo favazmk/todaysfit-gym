@@ -21,6 +21,14 @@
   --color-brand-red-hover: #ff2930;
   --color-brand-red-dim: rgba(227, 30, 36, 0.12);
   --color-brand-red-glow: rgba(227, 30, 36, 0.3);
+
+  /* Marquee band palette — the two colours the crossed ribbons are built from,
+     reused by .section-band-red / .section-band-cream further down. */
+  --color-band-cream: #f2f1ee;
+  --color-band-ink: #131313;
+  --color-band-ink-soft: #4e4b49;
+  --color-band-ink-dim: rgba(19, 19, 19, 0.42);
+  --color-band-red-ink: #c2161b;
   
   /* Architectural Interior Accents */
   --color-accent-rose: #a77d78;
@@ -740,22 +748,31 @@ p {
   margin-bottom: 1.5rem;
 }
 
+/* Scroll cue. Stacked and centred under the hero CTAs, because the hero copy is
+   centred and a horizontal rule read as a divider rather than an instruction.
+   The label, the travelling red pulse and the bobbing chevron all point the
+   same way, so the affordance lands before anyone reads the words. */
 .hero-scroll-indicator {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-family: var(--font-display);
   font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
+  font-weight: 700;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-text-dim);
+  color: var(--color-text);
+}
+
+.scroll-cue-label {
+  opacity: 0.85;
 }
 
 .scroll-line {
-  width: 40px;
-  height: 2px;
-  background-color: var(--color-text-dim);
+  width: 2px;
+  height: 44px;
+  background-color: rgba(255, 255, 255, 0.22);
   position: relative;
   overflow: hidden;
 }
@@ -763,18 +780,53 @@ p {
 .scroll-line::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
+  left: 0;
+  top: -100%;
   width: 100%;
   height: 100%;
   background-color: var(--color-brand-red);
   animation: scrollPulse 2s infinite;
 }
 
+.scroll-cue-chevron {
+  width: 22px;
+  height: 22px;
+  color: var(--color-brand-red);
+  animation: scrollCueBob 2s ease-in-out infinite;
+}
+
 @keyframes scrollPulse {
-  0% { left: -100%; }
-  50% { left: 100%; }
-  100% { left: 100%; }
+  0% { top: -100%; }
+  50% { top: 100%; }
+  100% { top: 100%; }
+}
+
+@keyframes scrollCueBob {
+  0%, 100% { transform: translateY(0); opacity: 0.75; }
+  50% { transform: translateY(6px); opacity: 1; }
+}
+
+/* The cue is an invitation, not an animation showcase. */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-line::after,
+  .scroll-cue-chevron {
+    animation: none;
+  }
+  .scroll-line::after {
+    top: 0;
+  }
+}
+
+/* Desktop-only break, so the second headline line reads as two short lines
+   instead of one long one. Narrow viewports already wrap it themselves. */
+.hero-line-break {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .hero-line-break {
+    display: block;
+  }
 }
 
 /* Marquee Ribbon */
@@ -898,6 +950,225 @@ p {
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+/* --------------------------------------------------------------------------
+   MARQUEE-PALETTE SECTION BANDS
+   The crossed ribbons under the hero are built from exactly two colours: the
+   cream ribbon (#f2f1ee, near-black text, red bullets) and the brand-red
+   ribbon (white text). These classes carry that same pairing into full page
+   sections, so the red/cream rhythm repeats down the home page instead of
+   appearing once and never again. Home page only.
+   -------------------------------------------------------------------------- */
+
+/* ---- RED BAND ---- */
+.section-band-red {
+  background-color: var(--color-brand-red);
+  color: #ffffff;
+  position: relative;
+}
+
+.section-band-red h2,
+.section-band-red h3,
+.section-band-red h4,
+.section-band-red strong {
+  color: #ffffff;
+}
+
+/* White is the only text colour that clears 4.5:1 on #e31e24 (4.69:1), so the
+   red band states it outright rather than fading it back. */
+.section-band-red p,
+.section-band-red .section-subtitle {
+  color: #ffffff;
+}
+
+/* The dot-and-label eyebrow is red by default, which would vanish here. */
+.section-band-red .eyebrow {
+  color: #ffffff;
+}
+
+.section-band-red .eyebrow::before {
+  background-color: #ffffff;
+  box-shadow: none;
+}
+
+/* Same reason: red highlight text needs to invert to the ribbon's ink. */
+.section-band-red .text-red {
+  color: var(--color-band-ink);
+}
+
+.section-band-red .stats-grid {
+  border-top-color: rgba(255, 255, 255, 0.24);
+  border-bottom-color: rgba(255, 255, 255, 0.24);
+}
+
+.section-band-red .stat-item {
+  border-right-color: rgba(255, 255, 255, 0.24);
+}
+
+.section-band-red .stat-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.section-band-red .stat-number {
+  color: #ffffff;
+}
+
+.section-band-red .stat-label {
+  color: #ffffff;
+}
+
+/* ---- CREAM BAND ---- */
+.section-band-cream {
+  background-color: var(--color-band-cream);
+  color: var(--color-band-ink);
+  border-top: 1px solid rgba(19, 19, 19, 0.08);
+  border-bottom: 1px solid rgba(19, 19, 19, 0.08);
+}
+
+.section-band-cream h2,
+.section-band-cream h3,
+.section-band-cream h4,
+.section-band-cream strong {
+  color: var(--color-band-ink);
+}
+
+.section-band-cream p,
+.section-band-cream .section-subtitle,
+.section-band-cream .feature-desc {
+  color: var(--color-band-ink-soft);
+}
+
+/* Headings keep the full brand red (large text, 3:1 applies); the small
+   eyebrow label uses the deepened red so it clears 4.5:1 on cream. */
+.section-band-cream .eyebrow {
+  color: var(--color-band-red-ink);
+}
+
+.section-band-cream .text-red {
+  color: var(--color-brand-red);
+}
+
+/* Cards sit a shade lighter than the band, the way the ribbon sits on the page. */
+.section-band-cream .feature-box {
+  background-color: #ffffff;
+  border-color: rgba(19, 19, 19, 0.1);
+}
+
+.section-band-cream .feature-box:hover {
+  border-color: rgba(227, 30, 36, 0.45);
+  box-shadow: 0 18px 44px rgba(19, 19, 19, 0.14);
+}
+
+.section-band-cream .feature-num {
+  color: var(--color-band-ink-dim);
+}
+
+.section-band-cream .feature-box:hover .feature-num {
+  color: var(--color-brand-red);
+}
+
+.section-band-cream .feature-title {
+  color: var(--color-band-ink);
+}
+
+/* Outline buttons are drawn for dark ground; restate them in ink on cream. */
+.section-band-cream .btn-secondary {
+  color: var(--color-band-ink);
+  border-color: rgba(19, 19, 19, 0.24);
+}
+
+.section-band-cream .btn-secondary:hover {
+  color: var(--color-brand-red);
+  border-color: var(--color-brand-red);
+  background-color: rgba(227, 30, 36, 0.07);
+}
+
+/* ---- CREAM CARD ----
+   The band palette applied to a single card instead of a full-bleed section,
+   so a cream block can land inside a dark section. */
+.band-card-cream {
+  background: var(--color-band-cream);
+  border: 1px solid rgba(19, 19, 19, 0.12);
+  border-radius: var(--radius-sm);
+  padding: clamp(40px, 6vw, 72px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  color: var(--color-band-ink);
+}
+
+.band-card-cream h2,
+.band-card-cream h3,
+.band-card-cream strong {
+  color: var(--color-band-ink);
+}
+
+.band-card-cream p {
+  color: var(--color-band-ink-soft);
+}
+
+.band-card-cream .text-red {
+  color: var(--color-brand-red);
+}
+
+.band-card-cream .eyebrow {
+  color: var(--color-band-red-ink);
+}
+
+.band-card-cream .btn-secondary {
+  color: var(--color-band-ink);
+  border-color: rgba(19, 19, 19, 0.24);
+}
+
+.band-card-cream .btn-secondary:hover {
+  color: var(--color-brand-red);
+  border-color: var(--color-brand-red);
+  background-color: rgba(227, 30, 36, 0.07);
+}
+
+/* Centred column: the card is a standalone offer block, so its copy and its
+   buttons sit on the card's own centre line rather than ragging off the left
+   edge of a very wide card. */
+.band-card-body {
+  max-width: 720px;
+  margin-inline: auto;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.band-card-body .eyebrow {
+  justify-content: center;
+}
+
+.band-card-body > div:last-child {
+  justify-content: center;
+}
+
+/* Corner wash, matching the red glow the dark version of this card carried. */
+.band-card-cream::after {
+  content: '';
+  position: absolute;
+  right: -80px;
+  bottom: -80px;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(227, 30, 36, 0.16) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.band-card-pill {
+  display: inline-block;
+  background: rgba(227, 30, 36, 0.1);
+  border: 1px solid rgba(227, 30, 36, 0.38);
+  border-radius: var(--radius-xs);
+  padding: 8px 18px;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-band-red-ink);
 }
 
 /* Sub-page Heroes */
@@ -1582,11 +1853,19 @@ p {
 /* --------------------------------------------------------------------------
    16. CONTACT & ENQUIRY FORM
    -------------------------------------------------------------------------- */
+/* minmax(0, ...) rather than a bare fr: an `fr` track will not shrink below its
+   content's min-content width, so the embedded map was forcing a 417px column
+   inside a 350px grid and pushing the card off the right edge on a 390px
+   phone. min-width on the children lets what is inside the track shrink too. */
 .contact-layout {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   gap: clamp(32px, 5vw, 64px);
   align-items: start;
+}
+
+.contact-layout > * {
+  min-width: 0;
 }
 
 .contact-info-card {
@@ -1898,6 +2177,23 @@ select.form-control option {
   color: var(--color-text-dim);
 }
 
+/* Build credit. Purple on hover is the builder's own colour, deliberately not
+   the gym's red, so it reads as a separate party's mark. */
+.footer-credit {
+  color: var(--color-text-dim);
+}
+
+.footer-credit-link {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.footer-credit-link:hover,
+.footer-credit-link:focus-visible {
+  color: #a855f7;
+}
+
 /* --------------------------------------------------------------------------
    20. SCROLL REVEAL ANIMATIONS
    -------------------------------------------------------------------------- */
@@ -1917,6 +2213,100 @@ select.form-control option {
 .reveal-delay-2 { transition-delay: 0.2s; }
 .reveal-delay-3 { transition-delay: 0.3s; }
 .reveal-delay-4 { transition-delay: 0.4s; }
+
+/* --------------------------------------------------------------------------
+   20b. HOME SCROLL CHOREOGRAPHY (index.html only)
+   Two layers, both gated behind body[data-page="home"] so the other pages keep
+   the plain one-shot reveal.
+
+   1. REVEAL VARIANTS — directional / scaled / wiped entrances, so a long page
+      doesn't repeat the same 24px lift eighty times.
+   2. CLOSING MOTION — on home the reveal is bidirectional: content settles on
+      the way in and "closes" again (drifts up, dims, eases back) once it has
+      travelled off the top, and resets below the fold so it replays on the way
+      back down.
+   -------------------------------------------------------------------------- */
+
+/* ---- 1. REVEAL VARIANTS ---- */
+.reveal-left  { transform: translate3d(-40px, 0, 0); }
+.reveal-right { transform: translate3d(40px, 0, 0); }
+.reveal-scale { transform: scale(0.94); }
+.reveal-rise  { transform: translate3d(0, 56px, 0); }
+
+.reveal-blur {
+  filter: blur(10px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Wipes the element open from the bottom edge rather than moving it. */
+.reveal-mask {
+  clip-path: inset(0 0 100% 0);
+  transform: none;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              clip-path 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-left.active,
+.reveal-right.active,
+.reveal-scale.active,
+.reveal-rise.active {
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.reveal-blur.active { filter: blur(0); }
+.reveal-mask.active { clip-path: inset(0 0 0 0); }
+
+.reveal-delay-5 { transition-delay: 0.5s; }
+.reveal-delay-6 { transition-delay: 0.6s; }
+
+/* ---- 2. CLOSING MOTION ---- */
+/* Scrolled past the top: the element eases shut instead of just vanishing
+   with the viewport. Delays are dropped so a closing row leaves together. */
+body[data-page="home"] .reveal.is-closing {
+  opacity: 0;
+  transform: translate3d(0, -32px, 0) scale(0.97);
+  transition-delay: 0s;
+}
+
+body[data-page="home"] .reveal-mask.is-closing {
+  clip-path: inset(0 0 0 0);
+  transform: none;
+}
+
+/* Below the fold again: back to the element's own starting pose so the
+   entrance replays cleanly on the way back down. */
+body[data-page="home"] .reveal.is-waiting {
+  opacity: 0;
+  transition-delay: 0s;
+}
+
+/* Whole-section close. --close-p runs 0 -> 1 as the section exits the top of
+   the viewport; JS only writes that number, the look lives here.
+   The transform lands on the inner container, never the <section>, so the
+   full-bleed backgrounds (and the cream/red bands especially) stay edge to
+   edge while their contents ease shut. */
+body[data-page="home"] [data-scroll-close] > .container,
+body[data-page="home"] [data-scroll-close] > .container-narrow {
+  transform: scale(calc(1 - (0.04 * var(--close-p, 0))))
+             translate3d(0, calc(-30px * var(--close-p, 0)), 0);
+  opacity: calc(1 - (0.6 * var(--close-p, 0)));
+  transform-origin: center top;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="home"] [data-scroll-close] > .container,
+  body[data-page="home"] [data-scroll-close] > .container-narrow {
+    transform: none;
+    opacity: 1;
+  }
+  body[data-page="home"] .reveal.is-closing,
+  body[data-page="home"] .reveal.is-waiting {
+    opacity: 1;
+    transform: none;
+  }
+}
 
 /* --------------------------------------------------------------------------
    21. RESPONSIVE BREAKPOINTS
@@ -1965,7 +2355,7 @@ select.form-control option {
     display: flex;
   }
   .contact-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .grid-2 {
     grid-template-columns: 1fr;
@@ -2301,6 +2691,8 @@ select.form-control option {
 .about-hero {
   display: flex;
   align-items: center;
+  padding-top: 104px;
+  padding-bottom: 48px;
 }
 .hero-image-wrap {
   position: absolute;
@@ -2322,7 +2714,6 @@ select.form-control option {
 .hero-content {
   position: relative;
   z-index: 10;
-  padding-top: var(--space-xl);
 }
 .hero-eyebrow {
   font-family: var(--font-display);
@@ -2340,8 +2731,10 @@ select.form-control option {
 .hero-heading {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(3rem, 8vw, 8rem);
-  line-height: 0.95;
+  /* Blend both axes: vw alone overflowed short windows, vmin alone shrank the
+     heading to 42px on a wide one. Whichever axis is tighter wins. */
+  font-size: clamp(2.25rem, min(6.5vw, 11vh), 5rem);
+  line-height: 1;
   text-transform: uppercase;
   color: #fff;
   letter-spacing: -0.02em;
@@ -2353,14 +2746,17 @@ select.form-control option {
   font-size: clamp(1rem, 2vw, 1.25rem);
   color: var(--color-text-muted);
   max-width: 500px;
-  margin-top: var(--space-md);
+  /* The hero column is centred, so a 500px-capped paragraph needs auto margins
+     or it sits 160px left of the heading it belongs to. */
+  margin-inline: auto;
+  margin-top: var(--space-sm);
   opacity: 0;
 }
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  margin-top: var(--space-lg);
+  margin-top: var(--space-md);
   opacity: 0;
 }
 
@@ -2734,8 +3130,23 @@ select.form-control option {
    normally clears it is dead space here — except in the static fallback,
    where the header is visible from the start. */
 @media (max-height: 700px) {
+  /* The cue is NOT dropped here any more. The hero now stages its copy against
+     scroll, so on a short viewport the first screen is just the photograph --
+     the cue is the only thing telling anyone the page continues. Shrink it
+     instead: half the track, tighter gaps, same message. */
   .hero-scroll-indicator {
-    display: none;
+    gap: 6px;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+  }
+
+  .scroll-line {
+    height: 24px;
+  }
+
+  .scroll-cue-chevron {
+    width: 18px;
+    height: 18px;
   }
 
   .hero {
@@ -2822,3 +3233,56 @@ select.form-control option {
     transition: none;
   }
 }
+
+/* --------------------------------------------------------------------------
+   ABOUT PAGE: NO-MOTION FALLBACK
+   Every scene above starts hidden (opacity 0, or clipped) and is revealed by
+   GSAP. That is fine while GSAP loads, but it is loaded from a CDN: if that
+   request is blocked, slow or fails, nothing ever reveals the content and the
+   whole page reads as blank. So the hidden state now only applies once the
+   script has confirmed GSAP is present and tagged the document .motion-ready.
+   Without that tag the page renders as a plain, static, readable layout.
+   -------------------------------------------------------------------------- */
+html:not(.motion-ready) .hero-eyebrow,
+html:not(.motion-ready) .hero-sub,
+html:not(.motion-ready) .hero-actions,
+html:not(.motion-ready) .approach-text {
+  opacity: 1;
+}
+
+html:not(.motion-ready) .hero-heading {
+  clip-path: none;
+  transform: none;
+}
+
+html:not(.motion-ready) .motion-image-wrap {
+  clip-path: none;
+}
+
+html:not(.motion-ready) .motion-image-wrap img {
+  transform: none;
+}
+
+html:not(.motion-ready) .hero-image-wrap img {
+  transform: none;
+}
+
+/* The four pillars are stacked absolutely on one another and cross-faded, so
+   simply un-hiding them would overlap all four. Let them flow instead. */
+html:not(.motion-ready) .pillars-content {
+  height: auto;
+}
+
+html:not(.motion-ready) .pillar-item {
+  position: relative;
+  top: auto;
+  transform: none;
+  opacity: 1;
+  margin-bottom: var(--space-md);
+}
+
+html:not(.motion-ready) .approach-overlay,
+html:not(.motion-ready) .pillars-overlay {
+  display: none;
+}
+

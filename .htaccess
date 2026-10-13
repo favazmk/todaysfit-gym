@@ -1,0 +1,103 @@
+# Today's Fit Gym — static hosting config (Hostinger / Apache / LiteSpeed)
+#
+# This file sits at the repo root because Hostinger's GitHub deployment serves
+# the repo root as the web root. Everything here is optional: the site works
+# without it. It exists to keep a 180-frame hero sequence cheap to serve, and
+# to stop the repo's non-site files being served to visitors.
+
+# ---------------------------------------------------------------------------
+# Hide everything that is in the repo but is not part of the website.
+# Deploying from git means the source tree IS the web root, so the notes,
+# build script and tooling config would otherwise be publicly fetchable.
+# ---------------------------------------------------------------------------
+<FilesMatch "^(README\.md|.*\.txt)$">
+  Require all denied
+</FilesMatch>
+# robots.txt is a .txt the crawlers must reach, so allow it back.
+<Files "robots.txt">
+  Require all granted
+</Files>
+
+RedirectMatch 404 ^/(\.git|\.github|\.claude|\.vercel|scripts)(/|$)
+
+# Dotfiles in general.
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+<Files ".htaccess">
+  Require all denied
+</Files>
+
+# ---------------------------------------------------------------------------
+# Compression. Images are already compressed (webp), so they are left alone.
+# ---------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE application/json application/xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Caching.
+#
+# Images and the hero frame sequence get a year: those filenames never change
+# content, so there is nothing to invalidate.
+#
+# CSS and JS get a week, NOT a year. The filenames are not content-hashed
+# (css/style.css, js/main.js), so a long cache would leave returning visitors
+# on a stale stylesheet after an edit with no way to bust it.
+#
+# HTML always revalidates, so copy changes appear on the next visit — which
+# matters more when deploys happen automatically on every git push.
+# ---------------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault                          "access plus 1 week"
+
+  ExpiresByType image/webp                "access plus 1 year"
+  ExpiresByType image/png                 "access plus 1 year"
+  ExpiresByType image/jpeg                "access plus 1 year"
+  ExpiresByType image/svg+xml             "access plus 1 year"
+  ExpiresByType image/x-icon              "access plus 1 year"
+  ExpiresByType font/woff2                "access plus 1 year"
+
+  ExpiresByType text/css                  "access plus 1 week"
+  ExpiresByType application/javascript    "access plus 1 week"
+
+  ExpiresByType text/html                 "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(webp|png|jpe?g|svg|ico|woff2?)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Correct types, in case the host does not know webp.
+# ---------------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType image/webp .webp
+  AddType image/svg+xml .svg
+  AddType font/woff2 .woff2
+</IfModule>
+
+AddDefaultCharset UTF-8
+
+# ---------------------------------------------------------------------------
+# Pretty-ish URLs: /about serves about.html. Real .html links keep working, so
+# this is additive — nothing on the site depends on it.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.*)$ $1.html [L]
+</IfModule>
+
+ErrorDocument 404 /index.html

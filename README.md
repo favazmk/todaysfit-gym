@@ -41,7 +41,7 @@ Built with an **"Industrial Luxury Fitness"** design system inspired by the club
 - **Authentic Gym Interior Showcase**: Seamless integration of 9 genuine 3D interior design renders (Reception, In-House Café, Executive Member Lounge, Main Strength Floor, Spin Zone, Power Racks, and Cable Jungle).
 - **Interactive Lightbox Gallery**: Custom keyboard-navigable modal viewer with full-screen zoom, smooth transitions, and accessibility attributes.
 - **Conversion-Optimized Membership Matrix**: Dedicated pricing cards for 1, 3, 6, and 12-month memberships featuring verified pricing, highlighted 12-month "Best Value" plan, membership freezing allowances, and transparent feature breakdown.
-- **Instant WhatsApp & Phone Integrations**: Direct pre-filled WhatsApp enquiry routing (`+971 56 495 5005`) and clickable telephone links across all pages and modals.
+- **Instant WhatsApp & Phone Integrations**: Direct pre-filled WhatsApp enquiry routing (`+971 56 703 7002`) and clickable telephone links across all pages and modals.
 - **Sticky Mobile Action Bar**: Fixed bottom quick-action utility bar on mobile screens (`[ CALL ]` · `[ WHATSAPP ]` · `[ JOIN NOW ]`) for frictionless mobile booking.
 - **Interactive Modals & Toast System**: Accessible "Join Now" and "Book A Visit" dialogs with instant client-side validation and toast notifications.
 - **FAQ Accordion**: Smooth expand/collapse accordion addressing common questions regarding ladies & gents privacy zones, sauna facilities, and freezing terms.
@@ -88,6 +88,6 @@ npx serve .
 
 - **Business Name**: Today's Fit Gym LLC
 - **Physical Address**: 1st Floor, Mohebi Centre Building, Al Fahidi Street, Opposite Astoria Hotel, Bur Dubai, Al Fahidi, Dubai, United Arab Emirates
-- **Phone**: [+971 56 495 5005](tel:+971564955005)
-- **WhatsApp**: [+971 56 495 5005](https://wa.me/971564955005)
+- **Phone**: [+971 56 703 7002](tel:+971567037002)
+- **WhatsApp**: [+971 56 703 7002](https://wa.me/971567037002)
 - **Domain**: [todaysfitgym.com](https://todaysfitgym.com)

@@ -8,11 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileMenu();
   initScrollReveals();
   initLightbox();
-  initModals();
   initAccordion();
   initForms();
   initSmoothScroll();
   initHeroScrollSequence();
+  initHomeScrollMotion();
 });
 
 /* --------------------------------------------------------------------------
@@ -87,6 +87,11 @@ function initScrollReveals() {
     return;
   }
 
+  // Home drives its reveals from the scroll loop in initHomeScrollMotion, so the
+  // entrance and the closing motion share one source of truth. The observer
+  // below is for every other page.
+  if (document.body.dataset.page === 'home') return;
+
   const observer = new IntersectionObserver((entries, obs) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -100,6 +105,140 @@ function initScrollReveals() {
   });
 
   reveals.forEach(el => observer.observe(el));
+}
+
+/* --------------------------------------------------------------------------
+   3b. HOME SCROLL CHOREOGRAPHY (index.html only)
+   Owns both halves of the home page's motion from one scroll loop:
+
+   - every .reveal is opened, closed or parked from its own position rather
+     than from an IntersectionObserver threshold. One threshold ratio is
+     unreliable across elements of wildly different heights (a 580px gallery
+     tile and a 60px heading need very different ratios to mean "on screen"),
+     and observer callbacks are suspended while a tab is hidden, so content
+     could sit in plain view and still be waiting to animate.
+   - every [data-scroll-close] section gets a 0 -> 1 --close-p, which
+     css/style.css turns into the scale-and-lift "close".
+
+   Positions come from the offset tree, not getBoundingClientRect. That matters
+   for more than speed: a reveal's own transform moves its client rect, so
+   deciding its state from that rect lets the decision feed back into itself,
+   and an element sitting near the threshold flips between states every frame.
+   offsetTop/offsetHeight ignore transforms, so the measurement is stable. They
+   are also measured once per layout change instead of once per frame, which
+   keeps a scroll frame free of forced synchronous layout.
+   -------------------------------------------------------------------------- */
+function initHomeScrollMotion() {
+  if (document.body.dataset.page !== 'home') return;
+
+  const panels = Array.from(document.querySelectorAll('[data-scroll-close]'));
+  const reveals = Array.from(document.querySelectorAll('.reveal'));
+  if (!panels.length && !reveals.length) return;
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    reveals.forEach(el => el.classList.add('active'));
+    return;
+  }
+
+  // How far an element's top edge must be inside the viewport before it opens.
+  const ENTER_AT = 60;
+
+  const docTop = (el) => {
+    let y = 0;
+    let node = el;
+    while (node) {
+      y += node.offsetTop;
+      node = node.offsetParent;
+    }
+    return y;
+  };
+
+  let panelBox = [];
+  let revealBox = [];
+
+  const measure = () => {
+    panelBox = panels.map(el => ({ top: docTop(el), h: el.offsetHeight }));
+    revealBox = reveals.map(el => ({ top: docTop(el), h: el.offsetHeight }));
+  };
+
+  let ticking = false;
+
+  const update = () => {
+    ticking = false;
+    const vh = window.innerHeight;
+    const y = window.scrollY || window.pageYOffset;
+    // A reveal starts closing once its bottom edge reaches this top band, so
+    // the close plays on screen instead of above it.
+    const closeAt = vh * 0.18;
+
+    panelBox.forEach((box, i) => {
+      const top = box.top - y;
+      let value = 0;
+      if (top < vh) {
+        // Normalise against the section's own exit, not a fixed pixel budget:
+        // a 190px band and a 2000px section both need to be fully closed by
+        // the time they leave, and a fixed distance leaves short sections
+        // stuck barely closed while tall ones snap shut early.
+        const span = Math.min(box.h, vh) || 1;
+        value = Math.min(1, Math.max(0, -top / span));
+      }
+      const next = value.toFixed(3);
+      const el = panels[i];
+      if (el.dataset.closeP === next) return;
+      el.dataset.closeP = next;
+      el.style.setProperty('--close-p', next);
+    });
+
+    revealBox.forEach((box, i) => {
+      const top = box.top - y;
+      let state;
+      if (top + box.h < closeAt) state = 'closing';
+      else if (top > vh - ENTER_AT) state = 'waiting';
+      else state = 'active';
+
+      const el = reveals[i];
+      if (el.dataset.revealState === state) return;
+      el.dataset.revealState = state;
+      // 'active' stays on through the close, so the exit transitions out of
+      // the settled pose instead of snapping back to the entrance pose first.
+      el.classList.toggle('active', state !== 'waiting');
+      el.classList.toggle('is-closing', state === 'closing');
+      el.classList.toggle('is-waiting', state === 'waiting');
+    });
+  };
+
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(update);
+  };
+
+  const remeasure = () => {
+    measure();
+    onScroll();
+  };
+
+  measure();
+  update();
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', remeasure, { passive: true });
+  // Late-loading images and fonts change where everything sits.
+  window.addEventListener('load', remeasure);
+  // rAF is suspended while the tab is hidden, so anything scrolled in the
+  // meantime needs a resync on return.
+  document.addEventListener('visibilitychange', onScroll);
+
+  // Anything that reflows the page (an accordion opening, a lazy image
+  // arriving) invalidates the cached offsets.
+  if (typeof ResizeObserver !== 'undefined') {
+    let settle;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(settle);
+      settle = setTimeout(remeasure, 120);
+    });
+    ro.observe(document.body);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -169,72 +308,6 @@ function initLightbox() {
 }
 
 /* --------------------------------------------------------------------------
-   5. QUICK ACTION MODALS (JOIN NOW & BOOK VISIT)
-   -------------------------------------------------------------------------- */
-function initModals() {
-  const joinModal = document.getElementById('joinModal');
-  const visitModal = document.getElementById('visitModal');
-  
-  const openModal = (modal, defaultPlan = '') => {
-    if (!modal) return;
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    if (defaultPlan) {
-      const planSelect = modal.querySelector('select[name="membership_plan"]');
-      if (planSelect) planSelect.value = defaultPlan;
-    }
-  };
-
-  const closeModal = (modal) => {
-    if (!modal) return;
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-  };
-
-  // Triggers for Join Modal
-  document.querySelectorAll('[data-open-join]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const plan = btn.getAttribute('data-plan') || '12 Months (AED 1260)';
-      openModal(joinModal, plan);
-    });
-  });
-
-  // Triggers for Visit Modal
-  document.querySelectorAll('[data-open-visit]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      openModal(visitModal);
-    });
-  });
-
-  // Close buttons
-  document.querySelectorAll('.modal-close, [data-close-modal]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      closeModal(joinModal);
-      closeModal(visitModal);
-    });
-  });
-
-  // Click outside to close
-  [joinModal, visitModal].forEach(modal => {
-    if (!modal) return;
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal(modal);
-    });
-  });
-
-  // Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeModal(joinModal);
-      closeModal(visitModal);
-    }
-  });
-}
-
-/* --------------------------------------------------------------------------
    6. FAQ ACCORDION
    -------------------------------------------------------------------------- */
 function initAccordion() {
@@ -275,60 +348,6 @@ function initAccordion() {
    7. FORM HANDLING & WHATSAPP INTEGRATION
    -------------------------------------------------------------------------- */
 function initForms() {
-  // Join Modal Form
-  const joinForm = document.getElementById('joinForm');
-  if (joinForm) {
-    joinForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = joinForm.querySelector('input[name="name"]').value.trim();
-      const phone = joinForm.querySelector('input[name="phone"]').value.trim();
-      const plan = joinForm.querySelector('select[name="membership_plan"]').value;
-
-      if (!name || !phone) {
-        showToast('Please fill in your name and contact phone number.', 'error');
-        return;
-      }
-
-      const text = encodeURIComponent(
-        `Hello Today's Fit Gym, my name is ${name}. I am interested in joining with the ${plan} plan. Please contact me at ${phone}.`
-      );
-      window.open(`https://wa.me/971564955005?text=${text}`, '_blank');
-      showToast('Redirecting to WhatsApp with your membership enquiry...', 'success');
-      
-      const modal = document.getElementById('joinModal');
-      if (modal) modal.classList.remove('active');
-      document.body.style.overflow = '';
-      joinForm.reset();
-    });
-  }
-
-  // Visit Modal Form
-  const visitForm = document.getElementById('visitForm');
-  if (visitForm) {
-    visitForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = visitForm.querySelector('input[name="name"]').value.trim();
-      const phone = visitForm.querySelector('input[name="phone"]').value.trim();
-      const date = visitForm.querySelector('input[name="visit_date"]')?.value || 'Upcoming';
-
-      if (!name || !phone) {
-        showToast('Please fill in your name and contact phone number.', 'error');
-        return;
-      }
-
-      const text = encodeURIComponent(
-        `Hello Today's Fit Gym, my name is ${name}. I would like to book a visit / tour of the gym (Preferred date: ${date}). Phone: ${phone}.`
-      );
-      window.open(`https://wa.me/971564955005?text=${text}`, '_blank');
-      showToast('Redirecting to WhatsApp to confirm your gym tour...', 'success');
-
-      const modal = document.getElementById('visitModal');
-      if (modal) modal.classList.remove('active');
-      document.body.style.overflow = '';
-      visitForm.reset();
-    });
-  }
-
   // Main Contact Page Form
   const contactForm = document.getElementById('contactEnquiryForm');
   if (contactForm) {
@@ -350,7 +369,7 @@ function initForms() {
         `Hello Today's Fit Gym!\n\nName: ${firstName} ${lastName}\nPhone: ${phone}\nEmail: ${email || 'N/A'}\nInterest: ${interest}\n\nMessage: ${message || 'I would like more information.'}`
       );
 
-      window.open(`https://wa.me/971564955005?text=${text}`, '_blank');
+      window.open(`https://wa.me/971582586548?text=${text}`, '_blank');
       showToast('Thank you! Your message has been prepared for WhatsApp.', 'success');
       contactForm.reset();
     });
@@ -646,6 +665,11 @@ function initAboutScrollExperience() {
   if (prefersReducedMotion) return; // Let CSS fallbacks handle it
 
   gsap.registerPlugin(ScrollTrigger);
+
+  // Tell the stylesheet the animation layer is actually available, which is
+  // what un-hides the scenes. Nothing above this line hides anything, so a
+  // failed GSAP load leaves the page static and readable rather than blank.
+  document.documentElement.classList.add('motion-ready');
 
   // Use matchMedia for responsive choreographies
   let mm = gsap.matchMedia();
